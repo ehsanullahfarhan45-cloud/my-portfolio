@@ -86,12 +86,71 @@ const AdminDashboard = () => {
     messages: 'Messages'
   }), [])
 
+  const crudTabs = ['skills', 'experience', 'education', 'projects']
+
+  const getEditorDefaults = (collection) => {
+    if (collection === 'projects') {
+      return { ...emptyItem.projects }
+    }
+
+    return { ...emptyItem[collection] }
+  }
+
+  const switchTab = (tab) => {
+    setActiveTab(tab)
+
+    if (crudTabs.includes(tab)) {
+      setEditor({
+        collection: tab,
+        editingId: null,
+        item: getEditorDefaults(tab)
+      })
+      return
+    }
+
+    setEditor({
+      collection: 'skills',
+      editingId: null,
+      item: getEditorDefaults('skills')
+    })
+  }
+
+  const formatMessageDate = (value) => {
+    if (!value) {
+      return 'Unknown date'
+    }
+
+    if (typeof value?.toDate === 'function') {
+      try {
+        return value.toDate().toLocaleString()
+      } catch {
+        return 'Unknown date'
+      }
+    }
+
+    if (value instanceof Date) {
+      return value.toLocaleString()
+    }
+
+    if (typeof value === 'string') {
+      const parsed = new Date(value)
+
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toLocaleString()
+      }
+
+      return value
+    }
+
+    return String(value)
+  }
+
   const startCreate = (collection) => {
     setActiveTab(collection)
     setEditor({
       collection,
       editingId: null,
-      item: collection === 'projects' ? { ...emptyItem.projects } : { ...emptyItem[collection] }
+      item: getEditorDefaults(collection)
     })
   }
 
@@ -174,6 +233,31 @@ const AdminDashboard = () => {
       setStatus({ type: 'success', message: 'Item deleted.' })
     } catch (error) {
       setStatus({ type: 'error', message: error.message || 'Unable to delete item.' })
+    }
+  }
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Delete this message?')) {
+      return
+    }
+
+    try {
+      await deleteCollectionItem('messages', messageId)
+      await loadAdminData()
+      setStatus({ type: 'success', message: 'Message deleted.' })
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message || 'Unable to delete message.' })
+    }
+  }
+
+  const handleRefreshMessages = async () => {
+    setStatus({ type: 'idle', message: '' })
+
+    try {
+      await loadAdminData()
+      setStatus({ type: 'success', message: 'Messages refreshed.' })
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message || 'Unable to refresh messages.' })
     }
   }
 
@@ -485,7 +569,7 @@ const AdminDashboard = () => {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setActiveTab(key)}
+                  onClick={() => switchTab(key)}
                   className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${activeTab === key ? 'bg-cyan-500 text-slate-950' : 'border border-slate-200/70 text-slate-700 hover:border-cyan-200 dark:border-slate-700 dark:text-slate-100'}`}
                 >
                   {label}
@@ -629,7 +713,7 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {activeTab !== 'profile' && (
+            {crudTabs.includes(activeTab) && (
               <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -684,16 +768,64 @@ const AdminDashboard = () => {
 
             {activeTab === 'messages' && (
               <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Messages</h2>
-                <div className="mt-4 space-y-3">
-                  {messages.map((message) => (
-                    <div key={message.id} className="rounded-[22px] border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/80">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{message.name}</p>
-                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{message.email}</p>
-                      <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{message.message}</p>
-                    </div>
-                  ))}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Messages</h2>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Read incoming contact messages and delete anything you do not need.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRefreshMessages}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-4 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white"
+                  >
+                    Refresh
+                  </button>
                 </div>
+
+                {messages.length === 0 ? (
+                  <div className="mt-4 rounded-[22px] border border-dashed border-slate-200/70 bg-slate-50/70 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-900/80">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">No messages yet</p>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Messages submitted through the contact form will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="mt-4 overflow-hidden rounded-[22px] border border-slate-200/70 dark:border-slate-800">
+                    <div className="hidden md:grid md:grid-cols-[1.2fr_1.6fr_2.4fr_1.2fr_auto] bg-slate-50/80 px-4 py-3 text-sm font-semibold text-slate-900 dark:bg-slate-900/90 dark:text-white">
+                      <span>Name</span>
+                      <span>Email</span>
+                      <span>Message</span>
+                      <span>Created</span>
+                      <span>Actions</span>
+                    </div>
+                    <div className="divide-y divide-slate-200/70 dark:divide-slate-800">
+                      {messages.map((message) => (
+                        <div key={message.id} className="grid gap-3 px-4 py-4 md:grid-cols-[1.2fr_1.6fr_2.4fr_1.2fr_auto] md:items-start">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{message.name || 'Anonymous'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">{message.email || 'No email provided'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">{message.message || 'No message content.'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">{formatMessageDate(message.createdAt)}</p>
+                          </div>
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(message.id)}
+                              className="inline-flex items-center gap-2 rounded-full border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900 dark:text-rose-200"
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -79,6 +79,24 @@
 			"problemMatcher": [
 				"$tsc"
 			]
+		},
+		{
+			"label": "Check final git status before commit",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\Git\\bin\\git.exe' -C 'd:\\myCV\\Cv' status --short",
+			"isBackground": false
+		},
+		{
+			"label": "Commit current changes",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\Git\\bin\\git.exe' -C 'd:\\myCV\\Cv' add dist src/pages/AdminDashboard.jsx; & 'C:\\Program Files\\Git\\bin\\git.exe' -C 'd:\\myCV\\Cv' commit -m \"Refine AdminDashboard messages UI and rebuild\"",
+			"isBackground": false
+		},
+		{
+			"label": "Check staged files after add",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\Git\\bin\\git.exe' -C 'd:\\myCV\\Cv' status --short",
+			"isBackground": false
 		}
 	]
 }
