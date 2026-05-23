@@ -1,0 +1,75 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Verify Vite build",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Verify Vite build via cmd",
+			"type": "shell",
+			"command": "cmd /c \"cd /d d:\\myCV\\Cv && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Verify Vite build via cmd",
+			"type": "shell",
+			"command": "cmd.exe /c cd /d d:\\myCV\\Cv ^&^& npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Verify Vite build via powershell bypass",
+			"type": "shell",
+			"command": "powershell -ExecutionPolicy Bypass -Command \"Set-Location 'd:\\myCV\\Cv'; npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Verify Vite build with policy bypass",
+			"type": "shell",
+			"command": "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; Set-Location 'd:\\myCV\\Cv'; npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Remove temporary debug script",
+			"type": "shell",
+			"command": "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; Remove-Item .\\debug-chunks.mjs -Force",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify Vite build with policy bypass",
+			"type": "shell",
+			"command": "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; Set-Location 'd:\\myCV\\Cv'; npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Verify Vite build with policy bypass",
+			"type": "shell",
+			"command": "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; Set-Location 'd:\\myCV\\Cv'; npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		}
+	]
+}
