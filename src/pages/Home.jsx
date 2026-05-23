@@ -1,14 +1,24 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, Mail, MapPin, PhoneCall, Sparkles } from 'lucide-react'
+import { ArrowRight, Globe2, Mail, MapPin, Menu, MessageSquare, PhoneCall, Sparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import SectionHeader from '../components/SectionHeader'
 import SkillGroup from '../components/SkillGroup'
 import ProjectCard from '../components/ProjectCard'
 import SkeletonLoader from '../components/SkeletonLoader'
 import ThemeToggle from '../components/ThemeToggle'
+import profileImage from '../../assests/mylogo.png'
 import { loadPortfolioData, submitContactMessage } from '../services/portfolioService'
 
 const initialForm = { name: '', email: '', message: '' }
+
+const socialIconMap = {
+  linkedin: Globe2,
+  github: Globe2,
+  website: Globe2,
+  default: Globe2
+}
+
+const navItems = ['About', 'Skills', 'Experience', 'Education', 'Projects', 'Contact']
 
 const Home = () => {
   const [portfolioData, setPortfolioData] = useState({
@@ -24,6 +34,7 @@ const Home = () => {
   const [formStatus, setFormStatus] = useState({ type: 'idle', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isOffline, setIsOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const fetchPortfolio = async () => {
     try {
@@ -72,6 +83,34 @@ const Home = () => {
     }, {})
   }, [portfolioData.skills])
 
+  const socialLinks = useMemo(() => {
+    if (Array.isArray(profile.socialLinks) && profile.socialLinks.length > 0) {
+      return profile.socialLinks
+        .filter((item) => item?.url)
+        .map((item) => ({
+          label: item.label || item.icon || 'Link',
+          url: item.url,
+          icon: socialIconMap[item.icon] || socialIconMap.default
+        }))
+    }
+
+    const links = []
+
+    if (profile.linkedin) {
+      links.push({ label: 'LinkedIn', url: profile.linkedin, icon: socialIconMap.linkedin })
+    }
+
+    if (profile.github) {
+      links.push({ label: 'GitHub', url: profile.github, icon: socialIconMap.github })
+    }
+
+    if (links.length === 0) {
+      links.push({ label: 'Portfolio', url: '#contact', icon: socialIconMap.default })
+    }
+
+    return links
+  }, [profile])
+
   const handleChange = (event) => {
     const { name, value } = event.target
     setFormState((current) => ({ ...current, [name]: value }))
@@ -100,12 +139,13 @@ const Home = () => {
   }
 
   const brandInitial = profile.name ? profile.name.charAt(0) : 'P'
+  const profileAvatar = profile.profileImage || profileImage
   const footerText = profile.footerText || `© ${new Date().getFullYear()} ${profile.name || 'Portfolio'} — Built with React and Firebase.`
 
   return (
     <div className="min-h-screen bg-transparent text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-7xl px-4 pb-12 pt-4 sm:px-6 lg:px-8">
-        <header className="sticky top-3 z-20 rounded-full border border-slate-200/70 bg-white/80 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+        <header className="sticky top-3 z-20 rounded-[28px] border border-slate-200/70 bg-white/80 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-lg font-black text-slate-950">
@@ -117,9 +157,9 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3">
               <nav className="hidden items-center gap-2 md:flex">
-                {['About', 'Skills', 'Experience', 'Education', 'Projects', 'Contact'].map((item) => (
+                {navItems.map((item) => (
                   <a
                     key={item}
                     href={`#${item.toLowerCase()}`}
@@ -130,8 +170,34 @@ const Home = () => {
                 ))}
               </nav>
               <ThemeToggle />
+              <button
+                type="button"
+                aria-label="Toggle navigation"
+                aria-expanded={mobileMenuOpen}
+                onClick={() => setMobileMenuOpen((current) => !current)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/70 bg-white/80 text-slate-900 shadow-soft backdrop-blur transition hover:scale-105 md:hidden dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+              >
+                {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
             </div>
           </div>
+
+          {mobileMenuOpen && (
+            <div className="mt-3 rounded-[22px] border border-slate-200/70 bg-white/95 p-3 md:hidden dark:border-slate-800 dark:bg-slate-950/95">
+              <div className="grid gap-2">
+                {navItems.map((item) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase()}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200"
+                  >
+                    {item}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </header>
 
         <main className="pt-6">
@@ -141,13 +207,13 @@ const Home = () => {
             <>
               <motion.section
                 id="home"
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]"
+                transition={{ duration: 0.45 }}
+                className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr]"
               >
-                <div className="rounded-[28px] border border-slate-200/70 bg-white/85 p-6 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 sm:p-8">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/80 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-cyan-600 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-100">
+                <div className="rounded-[30px] border border-slate-200/70 bg-white/85 p-6 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 sm:p-8">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/80 bg-cyan-50 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-cyan-600 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-100">
                     <Sparkles size={14} />
                     {profile.heroBadge || 'Dynamic portfolio powered by Firestore'}
                   </div>
@@ -156,7 +222,7 @@ const Home = () => {
                   </h1>
                   <p className="mt-3 text-lg text-slate-600 dark:text-slate-300">{profile.title || 'Developer'}</p>
                   <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-                    {profile.bio || profile.description || ''}
+                    {profile.intro || profile.bio || profile.description || ''}
                   </p>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <a
@@ -173,25 +239,51 @@ const Home = () => {
                       View Projects
                     </a>
                   </div>
+
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    {socialLinks.map((link) => {
+                      const Icon = link.icon
+                      return (
+                        <a
+                          key={link.label}
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white"
+                        >
+                          <Icon size={16} />
+                          {link.label}
+                        </a>
+                      )
+                    })}
+                  </div>
                 </div>
 
-                <div className="rounded-[28px] border border-slate-200/70 bg-white/80 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 sm:p-6">
-                  <div className="rounded-[22px] border border-slate-200/70 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-900/80">
-                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-500">What you can expect</p>
-                    <h2 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">Modern, scalable, and data-driven</h2>
-                    <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                      <li>• Firestore-powered content updates</li>
-                      <li>• Responsive sections for every screen size</li>
-                      <li>• Fast loading and clean visual structure</li>
-                    </ul>
+                <div className="rounded-[30px] border border-slate-200/70 bg-white/80 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 sm:p-6">
+                  <div className="overflow-hidden rounded-[24px] border border-slate-200/70 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/80">
+                    <img
+                      src={profileAvatar}
+                      alt={profile.name || 'Profile'}
+                      className="h-72 w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.style.display = 'none'
+                      }}
+                    />
+                    <div className="p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-500">Snapshot</p>
+                      <h2 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">Premium portfolio experience</h2>
+                      <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                        Built to showcase your work with elegant sections, responsive layouts, and live-firestore content updates.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[18px] border border-slate-200/70 px-4 py-3 dark:border-slate-800">
+                    <div className="rounded-[20px] border border-slate-200/70 px-4 py-3 dark:border-slate-800">
                       <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Experience</p>
                       <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white">{portfolioData.experience.length}</p>
                     </div>
-                    <div className="rounded-[18px] border border-slate-200/70 px-4 py-3 dark:border-slate-800">
+                    <div className="rounded-[20px] border border-slate-200/70 px-4 py-3 dark:border-slate-800">
                       <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Projects</p>
                       <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white">{portfolioData.projects.length}</p>
                     </div>
@@ -241,7 +333,7 @@ const Home = () => {
                   {portfolioData.experience.map((item) => (
                     <motion.article
                       key={item.id}
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 18 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="rounded-[24px] border border-slate-200/70 bg-white/80 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/75"
                     >
@@ -263,7 +355,7 @@ const Home = () => {
                   {portfolioData.education.map((item) => (
                     <motion.article
                       key={item.id}
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 18 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="rounded-[24px] border border-slate-200/70 bg-white/80 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/75"
                     >
@@ -318,27 +410,16 @@ const Home = () => {
                         <span>{profile.location || 'Remote'}</span>
                       </div>
                     </div>
-                    <div className="mt-5 flex flex-wrap gap-3">
-                      {profile.linkedin && (
-                        <a
-                          href={profile.linkedin}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-full border border-slate-200/70 px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white"
-                        >
-                          LinkedIn
-                        </a>
-                      )}
-                      {profile.github && (
-                        <a
-                          href={profile.github}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-full border border-slate-200/70 px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white"
-                        >
-                          GitHub
-                        </a>
-                      )}
+                    <div className="mt-5 rounded-[22px] border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/80">
+                      <div className="flex items-start gap-3">
+                        <MessageSquare size={18} className="mt-0.5 text-cyan-500" />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">Prefer a personal intro?</p>
+                          <p className="mt-1 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                            Reach out directly to discuss collaborations, opportunities, or product ideas.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

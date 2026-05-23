@@ -1,18 +1,21 @@
 import { motion } from 'framer-motion'
-import { LogOut, ShieldCheck, PlusCircle, PenSquare, Trash2, KeyRound } from 'lucide-react'
+import { KeyRound, LogOut, PenSquare, PlusCircle, ShieldCheck, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ThemeToggle from '../components/ThemeToggle'
-import { signOutAdmin, changeAdminPassword, getAdminData, saveProfile, createCollectionItem, updateCollectionItem, deleteCollectionItem } from '../services/adminService'
+import { changeAdminPassword, createCollectionItem, deleteCollectionItem, getAdminData, saveProfile, signOutAdmin, updateCollectionItem } from '../services/adminService'
 
 const defaultProfile = {
   name: '',
   title: '',
+  intro: '',
   bio: '',
   about: '',
   email: '',
   phone: '',
   location: '',
+  profileImage: '',
+  socialLinks: [],
   linkedin: '',
   github: '',
   heroBadge: '',
@@ -28,7 +31,7 @@ const defaultProfile = {
 }
 
 const emptyItem = {
-  skills: { name: '', category: '', order: 1 },
+  skills: { name: '', category: '', icon: '', order: 1 },
   experience: { role: '', company: '', period: '', summary: '', order: 1 },
   education: { degree: '', school: '', period: '', details: '', order: 1 },
   projects: { title: '', description: '', link: '', image: '', tags: '', order: 1 }
@@ -53,7 +56,11 @@ const AdminDashboard = () => {
     setLoading(true)
     try {
       const data = await getAdminData()
-      setProfile(data.profile || defaultProfile)
+      setProfile({
+        ...defaultProfile,
+        ...data.profile,
+        socialLinks: Array.isArray(data.profile?.socialLinks) ? data.profile.socialLinks : []
+      })
       setSkills(data.skills || [])
       setExperience(data.experience || [])
       setEducation(data.education || [])
@@ -222,6 +229,16 @@ const AdminDashboard = () => {
               value={editor.item.category || ''}
               onChange={handleEditorChange}
               required
+              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            />
+          </label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Icon Key
+            <input
+              name="icon"
+              value={editor.item.icon || ''}
+              onChange={handleEditorChange}
+              placeholder="sparkles"
               className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             />
           </label>
@@ -498,9 +515,17 @@ const AdminDashboard = () => {
                       Title
                       <input name="title" value={profile.title || ''} onChange={handleProfileChange} required className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
                     </label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
+                      Intro / Short Bio
+                      <textarea name="intro" value={profile.intro || ''} onChange={handleProfileChange} rows="3" className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
+                      About / Long Description
+                      <textarea name="about" value={profile.about || ''} onChange={handleProfileChange} rows="4" className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+                    </label>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Email
-                      <input name="email" type="email" value={profile.email || ''} onChange={handleProfileChange} required className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+                      <input name="email" value={profile.email || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
                     </label>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Phone
@@ -511,208 +536,143 @@ const AdminDashboard = () => {
                       <input name="location" value={profile.location || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
                     </label>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Profile Image URL
+                      <input name="profileImage" value={profile.profileImage || ''} onChange={handleProfileChange} placeholder="/src/assets/profile.png" className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Hero Badge
                       <input name="heroBadge" value={profile.heroBadge || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                  </div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Bio
-                    <textarea name="bio" value={profile.bio || ''} onChange={handleProfileChange} rows="4" required className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                    About
-                    <textarea name="about" value={profile.about || ''} onChange={handleProfileChange} rows="4" className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                  </label>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      LinkedIn
-                      <input name="linkedin" value={profile.linkedin || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      GitHub
-                      <input name="github" value={profile.github || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      About Title
-                      <input name="aboutTitle" value={profile.aboutTitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Skills Title
-                      <input name="skillsTitle" value={profile.skillsTitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Experience Title
-                      <input name="experienceTitle" value={profile.experienceTitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Education Title
-                      <input name="educationTitle" value={profile.educationTitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Projects Title
-                      <input name="projectsTitle" value={profile.projectsTitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Projects Description
-                      <input name="projectsDescription" value={profile.projectsDescription || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Contact Title
-                      <input name="contactTitle" value={profile.contactTitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Contact Subtitle
-                      <input name="contactSubtitle" value={profile.contactSubtitle || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
                     </label>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Footer Text
                       <input name="footerText" value={profile.footerText || ''} onChange={handleProfileChange} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
                     </label>
                   </div>
-                  <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950">
-                    {saving ? 'Saving...' : 'Save profile'}
-                  </button>
-                </form>
-              </div>
-            )}
 
-            {activeTab === 'skills' && (
-              <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Skills</h2>
-                  <button type="button" onClick={() => startCreate('skills')} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-4 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white">
-                    <PlusCircle size={16} />
-                    Add skill
-                  </button>
-                </div>
-                <form onSubmit={handleCollectionSubmit} className="mt-4 space-y-4">
-                  {renderInputs()}
-                  <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950">
-                    {saving ? 'Saving...' : editor.editingId ? 'Update skill' : 'Create skill'}
-                  </button>
-                </form>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  {skills.map((item) => (
-                    <div key={item.id} className="rounded-[22px] border border-slate-200/70 px-4 py-4 dark:border-slate-800">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-500">{item.category}</p>
-                      <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{item.name}</h3>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button type="button" onClick={() => startEdit('skills', item)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <PenSquare size={14} />
-                          Edit
-                        </button>
-                        <button type="button" onClick={() => handleDelete('skills', item.id)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <Trash2 size={14} />
-                          Delete
-                        </button>
+                  <div className="rounded-[22px] border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/80">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">Social Links</p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Edit the links shown on the public portfolio.</p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setProfile((current) => ({
+                          ...current,
+                          socialLinks: [...(current.socialLinks || []), { label: '', url: '', icon: 'website' }]
+                        }))}
+                        className="rounded-full border border-slate-200/70 px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white"
+                      >
+                        Add Link
+                      </button>
                     </div>
-                  ))}
-                </div>
+                    <div className="mt-4 space-y-3">
+                      {(profile.socialLinks || []).map((link, index) => (
+                        <div key={`${link.label || 'link'}-${index}`} className="grid gap-3 rounded-[20px] border border-slate-200/70 bg-white p-3 dark:border-slate-700 dark:bg-slate-950/80 md:grid-cols-[1fr_1fr_140px_auto]">
+                          <input
+                            value={link.label || ''}
+                            onChange={(event) => setProfile((current) => ({
+                              ...current,
+                              socialLinks: (current.socialLinks || []).map((currentLink, linkIndex) => (
+                                linkIndex === index ? { ...currentLink, label: event.target.value } : currentLink
+                              ))
+                            }))}
+                            placeholder="Label"
+                            className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                          />
+                          <input
+                            value={link.url || ''}
+                            onChange={(event) => setProfile((current) => ({
+                              ...current,
+                              socialLinks: (current.socialLinks || []).map((currentLink, linkIndex) => (
+                                linkIndex === index ? { ...currentLink, url: event.target.value } : currentLink
+                              ))
+                            }))}
+                            placeholder="https://example.com"
+                            className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                          />
+                          <select
+                            value={link.icon || 'website'}
+                            onChange={(event) => setProfile((current) => ({
+                              ...current,
+                              socialLinks: (current.socialLinks || []).map((currentLink, linkIndex) => (
+                                linkIndex === index ? { ...currentLink, icon: event.target.value } : currentLink
+                              ))
+                            }))}
+                            className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                          >
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="github">GitHub</option>
+                            <option value="website">Website</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setProfile((current) => ({
+                              ...current,
+                              socialLinks: (current.socialLinks || []).filter((_, linkIndex) => linkIndex !== index)
+                            }))}
+                            className="rounded-full border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900 dark:text-rose-200"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={saving} className="rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-70">
+                      {saving ? 'Saving...' : 'Save Profile'}
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
 
-            {activeTab === 'experience' && (
+            {activeTab !== 'profile' && (
               <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Experience</h2>
-                  <button type="button" onClick={() => startCreate('experience')} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-4 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white">
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{collectionLabels[activeTab]}</h2>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Create or edit portfolio data for the public page.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => startCreate(activeTab)}
+                    className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950"
+                  >
                     <PlusCircle size={16} />
-                    Add experience
+                    New {collectionLabels[activeTab].slice(0, -1)}
                   </button>
                 </div>
+
                 <form onSubmit={handleCollectionSubmit} className="mt-4 space-y-4">
                   {renderInputs()}
-                  <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950">
-                    {saving ? 'Saving...' : editor.editingId ? 'Update experience' : 'Create experience'}
-                  </button>
+                  <div className="flex justify-end gap-3">
+                    <button type="submit" disabled={saving} className="rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-70">
+                      {saving ? 'Saving...' : editor.editingId ? 'Update Item' : 'Create Item'}
+                    </button>
+                  </div>
                 </form>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  {experience.map((item) => (
-                    <div key={item.id} className="rounded-[22px] border border-slate-200/70 px-4 py-4 dark:border-slate-800">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-500">{item.period}</p>
-                      <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{item.role}</h3>
-                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{item.company}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button type="button" onClick={() => startEdit('experience', item)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <PenSquare size={14} />
-                          Edit
-                        </button>
-                        <button type="button" onClick={() => handleDelete('experience', item.id)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <Trash2 size={14} />
-                          Delete
-                        </button>
+
+                <div className="mt-6 space-y-3">
+                  {(activeTab === 'skills' ? skills : activeTab === 'experience' ? experience : activeTab === 'education' ? education : projects).map((item) => (
+                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/80">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                          {item.name || item.role || item.degree || item.title}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                          {item.category || item.company || item.school || item.description}
+                        </p>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'education' && (
-              <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Education</h2>
-                  <button type="button" onClick={() => startCreate('education')} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-4 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white">
-                    <PlusCircle size={16} />
-                    Add education
-                  </button>
-                </div>
-                <form onSubmit={handleCollectionSubmit} className="mt-4 space-y-4">
-                  {renderInputs()}
-                  <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950">
-                    {saving ? 'Saving...' : editor.editingId ? 'Update education' : 'Create education'}
-                  </button>
-                </form>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  {education.map((item) => (
-                    <div key={item.id} className="rounded-[22px] border border-slate-200/70 px-4 py-4 dark:border-slate-800">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-500">{item.period}</p>
-                      <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{item.degree}</h3>
-                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{item.school}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button type="button" onClick={() => startEdit('education', item)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <PenSquare size={14} />
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => startEdit(activeTab, item)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white">
+                          <PenSquare size={16} />
                           Edit
                         </button>
-                        <button type="button" onClick={() => handleDelete('education', item.id)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <Trash2 size={14} />
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'projects' && (
-              <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Projects</h2>
-                  <button type="button" onClick={() => startCreate('projects')} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-4 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:text-white">
-                    <PlusCircle size={16} />
-                    Add project
-                  </button>
-                </div>
-                <form onSubmit={handleCollectionSubmit} className="mt-4 space-y-4">
-                  {renderInputs()}
-                  <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950">
-                    {saving ? 'Saving...' : editor.editingId ? 'Update project' : 'Create project'}
-                  </button>
-                </form>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  {projects.map((item) => (
-                    <div key={item.id} className="rounded-[22px] border border-slate-200/70 px-4 py-4 dark:border-slate-800">
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{item.title}</h3>
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button type="button" onClick={() => startEdit('projects', item)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <PenSquare size={14} />
-                          Edit
-                        </button>
-                        <button type="button" onClick={() => handleDelete('projects', item.id)} className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                          <Trash2 size={14} />
+                        <button type="button" onClick={() => handleDelete(activeTab, item.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900 dark:text-rose-200">
+                          <Trash2 size={16} />
                           Delete
                         </button>
                       </div>
@@ -725,53 +685,39 @@ const AdminDashboard = () => {
             {activeTab === 'messages' && (
               <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
                 <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Messages</h2>
-                <div className="mt-4 grid gap-3">
+                <div className="mt-4 space-y-3">
                   {messages.map((message) => (
-                    <div key={message.id} className="rounded-[22px] border border-slate-200/70 px-4 py-4 dark:border-slate-800">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-500">{message.email}</p>
-                      <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{message.name}</h3>
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{message.message}</p>
-                      <button type="button" onClick={() => handleDelete('messages', message.id)} className="mt-3 inline-flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1 text-sm dark:border-slate-700">
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
+                    <div key={message.id} className="rounded-[22px] border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/80">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{message.name}</p>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{message.email}</p>
+                      <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{message.message}</p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-              <div className="flex items-center gap-2">
-                <KeyRound size={18} className="text-cyan-500" />
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Password Management</h2>
+            {activeTab === 'profile' && (
+              <div className="rounded-[26px] border border-slate-200/70 bg-white/85 p-5 shadow-soft backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Security</h2>
+                <form onSubmit={handlePasswordChange} className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                    New Password
+                    <input type="password" value={passwordForm.newPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+                  </label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                    Confirm Password
+                    <input type="password" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))} className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+                  </label>
+                  <div className="md:col-span-2 flex justify-end">
+                    <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950 disabled:cursor-not-allowed disabled:opacity-70">
+                      <KeyRound size={16} />
+                      {saving ? 'Updating...' : 'Update Password'}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <form onSubmit={handlePasswordChange} className="mt-4 space-y-4">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                  New Password
-                  <input
-                    type="password"
-                    value={passwordForm.newPassword}
-                    onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
-                    required
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                  Confirm Password
-                  <input
-                    type="password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-                    required
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-                <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-3 text-sm font-semibold text-slate-950">
-                  {saving ? 'Updating...' : 'Update password'}
-                </button>
-              </form>
-            </div>
+            )}
           </section>
         </div>
       </div>
