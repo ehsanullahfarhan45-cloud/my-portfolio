@@ -70,6 +70,15 @@
 			"problemMatcher": [
 				"$tsc"
 			]
+		},
+		{
+			"label": "Verify Vite build with policy bypass",
+			"type": "shell",
+			"command": "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; Set-Location 'd:\\myCV\\Cv'; npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
 		}
 	]
 }
